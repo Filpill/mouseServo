@@ -1,6 +1,8 @@
+import sys
 import tkinter as tk
 from tkinter import *
 from tkinter import ttk
+from ttkthemes import ThemedTk
 
 def motion(event):
     x_motion = (window.winfo_pointerx() - window.winfo_rootx()) / window.winfo_width()
@@ -10,13 +12,18 @@ def motion(event):
     print('{}, {}'.format(x_motion, y_motion))
 
 # Window
-window = Tk()
+# window = Tk()
+window = ThemedTk(theme="scidblue")
 [width,height]=[475,400]
 window.geometry(f'{width}x{height}')
 window.title('Servo Controller')
 
+bg = PhotoImage(file=sys.path[0]+"\img\space.png")
+my_label = Label(window, image=bg)
+my_label.place(x=0, y=0, relwidth=1, relheight=1)
+
 # -----------Yaw Bar------------
-yaw_frame = ttk.Frame(window, width=350, height=75, borderwidth=10, relief = tk.GROOVE)
+yaw_frame = ttk.Frame(window, width=350, height=75, borderwidth=5, relief = tk.GROOVE)
 yaw_frame.pack_propagate(False)
 yaw_frame.pack(
     side = 'left',
@@ -24,8 +31,8 @@ yaw_frame.pack(
     )
 
 x = IntVar()
-yaw_label = Label(yaw_frame, text ='Yaw', font="50")
-yaw_label.pack(pady=0)
+yaw_label = Label(yaw_frame, text ='Yaw', font="24")
+yaw_label.pack()
 
 yaw_bar = ttk.Progressbar(
     yaw_frame, 
@@ -39,7 +46,7 @@ yaw_bar.stop()
 yaw_bar.config(variable=x)
 
 #------------Pitch Bar-------------
-pitch_frame = ttk.Frame(window, width=100, height=300, borderwidth=10, relief = tk.GROOVE)
+pitch_frame = ttk.Frame(window, width=100, height=300, borderwidth=5, relief = tk.GROOVE)
 pitch_frame.pack_propagate(False)
 pitch_frame.pack(
     side = 'right',
@@ -47,7 +54,7 @@ pitch_frame.pack(
     )
 
 y = IntVar()
-pitch_label = Label(pitch_frame, text ='Pitch', font="50")
+pitch_label = Label(pitch_frame, text ='Pitch', font="24")
 pitch_label.pack(side = 'top')
 
 pitch_bar = ttk.Progressbar(
