@@ -1,4 +1,5 @@
 import sys
+import time
 import tkinter as tk
 import RPi.GPIO as GPIO
 from tkinter import *
@@ -7,45 +8,47 @@ from ttkthemes import ThemedTk
 from gpiozero import AngularServo
 
 
-def motion(event):
+def setup(pin,frequency):
+    GPIO.setup(pin,GPIO.OUT)
+    GPIO.output(pin,True)
+    pwm=GPIO.PWM(pin,frequency)
+    pwm.start(0)
+    return pwm
+
+# Setting up Program
+GPIO.setmode(GPIO.BCM)
+frequency=50
+yaw_pwm = setup(23,frequency)
+pitch_pwm = setup(24,frequency)
+pwm_list = [yaw_pwm,pitch_pwm]
+
+def motion(event,pwm_list):
     
     # Calculate Position of Mouse Pointer On Screen Based on Screen Resolution
     x_motion = (window.winfo_pointerx() - window.winfo_rootx()) / window.winfo_width()
     y_motion = 1 - (window.winfo_pointery() - window.winfo_rooty()) / window.winfo_height()
     
     #Convert to Servo Angle
-    x_angle = int((x_motion - 0.5) * 180)
-    y_angle = int((y_motion - 0.5) * 180)
+    x_angle = int(x_motion * 180)
+    y_angle = int(y_motion * 180)
     yaw_label.config(text='Yaw: '+'{:02d}'.format(x_angle))
     pitch_label.config(text='Pitch: '+'{:02d}'.format(y_angle))
     
     # Set data for the progress bar
     x.set(x_motion)
     y.set(y_motion)
-    
-    # GPIO Pins For Servo
-    #yaw_servo = AngularServo(23,min_angle=-90,max_angle=90)
-    #pitch_servo = AngularServo(24,min_angle=-90,max_angle=90)
-    
-    # Write Angles To The Servos
-    #yaw_servo.angle = x_angle
-    #pitch_servo.angle = y_angle
-    #print('yaw: '+'{:02d}'.format(x_angle)+' | pitch: '+'{:02d}'.format(y_angle))
 
-    servo_frequency=50
-    yaw_servo = GPIO.PWM(23,servo_frequency)
-    pitch_servo = GPIO.PWM(24,servo_frequency)
-    servo_pwm.start(0)
-
-def angle_2_pwm(angle,angle_min,angle_max,pwm_min,pwm_max):
-    angle_range = angle_max - angle_min
-    pwm_range = pwm_max - pwm_min
-    pwm = ((angle-angle_min)/angle_range)*pwm_range+pwm_min)
-    return pwm
-
+    # Change Duty Cycle of Servos
+    print("x",x_angle,"y",y_angle)
+    for i,pwm in enumerate(pwm_list):
+        if i == 0:
+            servo_angle = x_angle
+        else:
+            servo_angle = y_angle
+        pwm.ChangeDutyCycle(1/18*servo_angle + 2)
+    #time.sleep(0.1)
 
 # Window
-# window = Tk()
 window = ThemedTk(theme="scidblue")
 [width,height]=[575,500]
 window.geometry(f'{width}x{height}')
@@ -106,5 +109,5 @@ pitch_bar.start()
 pitch_bar.stop()
 pitch_bar.config(variable=y)
 
-window.bind('<Motion>', motion)
+window.bind('<Motion>', lambda event: motion(event,pwm_list))
 window.mainloop()
